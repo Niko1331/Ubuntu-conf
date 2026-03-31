@@ -5,7 +5,7 @@
 
 ```bash
 sudo bash nazwa_pliku.sh
-
+```
 Plik WAN.sh i LAN.sh są po to żeby wykryć która karta to WAN a która to LAN, 
 Plik iptables.sh wykryje nazwę karty WAN ale trzeba wpisać ręcznie nazwę karty LAN a potem użyje je w komendach iptables,
 Plik dhcp.sh najpierw się spyta o:
