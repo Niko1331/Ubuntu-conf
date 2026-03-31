@@ -1,5 +1,5 @@
 
-							Automatyczna konfiguracja serwera ubuntu
+							**Automatyczna konfiguracja serwera ubuntu**
 
 Wszystkie pliki włącz jako root czyli użyj sudo bash nazwapliku.sh
 
