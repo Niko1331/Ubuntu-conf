@@ -30,3 +30,7 @@ authoritative;
 EOF
 
 echo "Zapisano konfigurację do pliku /etc/dhcp/dhcpd.conf"
+
+sudo systemctl restart isc-dhcp-server
+sleep 1
+sudo systemctl status isc-dhcp-server
