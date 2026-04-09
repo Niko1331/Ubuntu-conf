@@ -18,6 +18,7 @@ echo "Karta LAN = $LAN_IF"
 
 # reszta tych komend iptables
 echo "Czyszczenie starych zasad i łańcuchów"
+sleep 1
 sudo iptables --flush
 sudo iptables --table nat --flush
 sudo iptables --table nat --delete-chain
@@ -30,5 +31,6 @@ sudo sysctl -w net.ipv4.ip_forward=1
 sudo sysctl -p
 sudo iptables-save
 echo "Zasady zastosowane! Instaluje teraz pakiet żeby konfiguracja była na stałe"
+sleep 3
 #instalacja pakietu iptables-persistent żeby konfiguracja była na stałe
 sudo apt install iptables-persistent -y
