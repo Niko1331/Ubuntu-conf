@@ -28,7 +28,7 @@ sleep 1
 sudo iptables --table nat --append POSTROUTING --out-interface $WAN_IF -j MASQUERADE
 sudo iptables --append FORWARD --in-interface $LAN_IF -j ACCEPT
 sudo sysctl -w net.ipv4.ip_forward=1
-sudo sysctl -p
+sudo sysctl -p /etc/sysctl.conf
 sudo iptables-save
 echo "Zasady zastosowane! Instaluje teraz pakiet żeby konfiguracja była na stałe"
 sleep 3

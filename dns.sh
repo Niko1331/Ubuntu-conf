@@ -10,7 +10,6 @@ read -p "Podaj mi nazwę twojej domeny (na przykład damian.local): " DOMAIN
 read -p "Podaj mi nazwę domeny twojego serwera (na przykład serwer.damian.local): " SERVER_DOMAIN
 read -p "Podaj mi nazwę domeny klienta (na przykład klient1.damian.local, wymagane jest wpisanie na początku klient1): " CLIENT_DOMAIN
 read -p "Podaj mi adres IP stacji roboczej: " CLIENT_IP
-
 ARPA=$(echo $LAN_IP | awk -F'.' '{print $3"."$2"."$1".in-addr.arpa"}')
 SERVER_ONLY=$(echo $SERVER_DOMAIN | awk -F'.' '{print $1}')
 CLIENT=$(echo $CLIENT_DOMAIN | awk -F'.' '{print $1}')
@@ -45,7 +44,7 @@ zone "$DOMAIN" IN {
 	allow-update {none;};
 
 	allow-transfer {$LAN_IP;};
-	allow-notify {$LAN_IP;};
+	also-notify {$LAN_IP;};
 };
 
 zone "$ARPA" IN {
@@ -64,7 +63,7 @@ sudo bash -c "cat > /etc/bind/forward.$DOMAIN.db" << EOF
 ;
 \$TTL	604800
 @	IN	SOA	$SERVER_DOMAIN. root.$SERVER_DOMAIN. (
- 			      3		; serial
+			      3		; serial
 			 604800		; refresh
 			  86400		; retry
 			2419200		; expire
@@ -116,7 +115,6 @@ $KHOST	IN	PTR	$CLIENT_DOMAIN.
 EOF
 
 echo "Zapisano dane do pliku /etc/bind/reverse.$DOMAIN.db!"
-
 echo "Robię zmiany w /etc/resolv.conf"
 sudo bash -c "cat > /etc/resolv.conf" << EOF
 
@@ -125,9 +123,22 @@ options edns0 trust-ad
 search $DOMAIN
 EOF
 
+echo "Zapisano dane do pliku /etc/resolv.conf!"
+
+echo "Teraz sprawdzam konfigurację serwera DNS"
 sudo named-checkconf
+ZONEOK=$(sudo named-checkzone $DOMAIN /etc/bind/forward.$DOMAIN.db | tail -1)
+if [[ "$ZONEOK" != *"OK" ]]; then
+echo "Konfiguracja nie działa i się nie powiodła, wychodzenie ze skryptu"
+exit 1
+else
+echo "Pierwsza konfiguracja działa, przechodzę do następnej"
+fi
 sleep 1
-sudo named-checkzone $DOMAIN forward.$DOMAIN.db
-sleep 1
-sudo named-checkzone $ARPA reverse.$DOMAIN.db
-echo "Zapisano dane do pliku /etc/resolv.conf! Cały DNS zrobiony"
+ARPAZONE=$(sudo named-checkzone $ARPA /etc/bind/reverse.$DOMAIN.db | tail -1)
+if [[ "$ARPAZONE" != *"OK"* ]]; then
+echo "Konfiguracja nie działa dobrze i się nie powiodła, wychodzenie ze skryptu"
+exit 1
+else
+echo "Wszystkie konfiguracje zadziałały! Cały serwer DNS zrobiony, zrób jeszcze komendę dig $DOMAIN i nslookup $DOMAIN żeby sprawdzić czy działa"
+fi
