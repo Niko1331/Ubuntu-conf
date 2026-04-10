@@ -43,6 +43,7 @@ zone "$DOMAIN" IN {
 	file "/etc/bind/forward.$DOMAIN.db";
 
 	allow-update {none;};
+
 	allow-transfer {$LAN_IP;};
 	allow-notify {$LAN_IP;};
 };
