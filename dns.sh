@@ -17,8 +17,8 @@ CLIENT=$(echo $CLIENT_DOMAIN | awk -F'.' '{print $1}')
 SHOST=$(echo $LAN_IP | awk -F'.' '{print $4}')
 KHOST=$(echo $CLIENT_IP | awk -F'.' '{print $4}')
 
-sudo cp /etc/bind/db.local /etc/bind/forward.$DOMAIN.db
-sudo cp /etc/bind/db.127 /etc/bind/reverse.$DOMAIN.db
+sudo touch /etc/bind/forward.$DOMAIN.db
+sudo touch /etc/bind/reverse.$DOMAIN.db
 
 echo "Dodaję twój adres IP do pliku /etc/bind/named.conf.options"
 sleep 1
