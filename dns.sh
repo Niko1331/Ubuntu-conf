@@ -116,11 +116,6 @@ $KHOST	IN	PTR	$CLIENT_DOMAIN.
 EOF
 
 echo "Zapisano dane do pliku /etc/bind/reverse.$DOMAIN.db!"
-sudo named-checkconf
-sleep 1
-sudo named-checkzone $DOMAIN forward.$DOMAIN.db
-sleep 1
-sudo named-checkzone $ARPA reverse.$DOMAIN.db
 
 echo "Robię zmiany w /etc/resolv.conf"
 sudo bash -c "cat > /etc/resolv.conf" << EOF
@@ -130,4 +125,9 @@ options edns0 trust-ad
 search $DOMAIN
 EOF
 
+sudo named-checkconf
+sleep 1
+sudo named-checkzone $DOMAIN forward.$DOMAIN.db
+sleep 1
+sudo named-checkzone $ARPA reverse.$DOMAIN.db
 echo "Zapisano dane do pliku /etc/resolv.conf! Cały DNS zrobiony"
