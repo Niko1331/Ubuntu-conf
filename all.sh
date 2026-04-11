@@ -1,11 +1,85 @@
 #!/bin/bash
 
-# instalacja pakietów
+set -e
+
+##### Początek DHCP
+
+WAN_IF=$(ip -o route get 8.8.8.8 | awk '{print $5}'
+if [ -z $WAN_IF ]; then
+echo "Nie znaleziono karty WAN, sprawdź połączenie z internetem i spróbuj ponownie"
+exit 1
+fi
+echo "Karta WAN = $WAN_IF
+read -p "Podaj najpierw nazwę karty LAN żebym mógł wpisać jej nazwę do pliku /etc/default/isc-dhcp-server: " LAN_IF
+read -p "Podaj swój adres ip karty LAN: " LAN_IP
+read -p "Podaj swój zakres początkowy serwera DHCP: " RANGE_START
+read -p "Podaj swój zakres końcowy serwera DHCP: " RANGE_END
+read -p "Podaj adres serwera DNS: " DNS_IP
+SUBNET=$(echo $LAN_IP | awk -F'.' '{print $1"."$2"."$3".0"}')
+
+
+sudo bash -c "cat > /etc/default/isc-dhcp-server" << EOF
+INTERFACESv4="$LAN_IF"
+INTERFACESv6=""
+EOF
+
+echo "Zapisano nazwę karty LAN do pliku /etc/default/isc-dhcp-server"
+
+sudo bash -c "cat > /etc/dhcp/dhcpd.conf" << EOF
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet $SUBNET netmask 255.255.255.0 {
+	range $RANGE_START $RANGE_END;
+	option routers $LAN_IP;
+	option domain-name-servers $DNS_IP;
+}
+
+authoritative;
+EOF
+
+echo "Zapisano konfigurację do pliku /etc/dhcp/dhcpd.conf"
+
+sudo systemctl restart isc-dhcp-server
+sleep 1
+sudo systemctl status isc-dhcp-server
+
+##### Koniec DHCP
+
+echo "DHCP zrobione, teraz robię NAT i routing"
+
+#### Początek iptables, NAT i routingu
+
+echo "Czyszczenie starych zasad i łańcuchów"
+sleep 1
+sudo iptables --flush
+sudo iptables --table nat --flush
+sudo iptables --table nat --delete-chain
+sudo iptables --delete-chain
+echo "Wyczyszczono! Teraz stosowanie nowych zasad"
+sleep 1
+sudo iptables --table nat --append POSTROUTING --out-interface $WAN_IF -j MASQUERADE
+sudo iptables --append FORWARD --in-interface $LAN_IF -j ACCEPT
+sudo sysctl -w net.ipv4.ip_forward=1
+sudo sysctl -p /etc/sysctl.conf
+sudo iptables-save
+echo "Zasady zastosowane! Instaluje teraz pakiet żeby konfiguracja była na stałe"
+sleep 3
+#instalacja pakietu iptables-persistent żeby konfiguracja była na stałe
+sudo apt install iptables-persistent -y
+
+##### Koniec iptables, NAT i routingu
+
+echo "NAT i routing zrobiony, teraz robię DNS"
+
+##### Początek DNS
+
+# instalacja pakietów DNS
 
 echo "Instaluje pakiety związane z serwerem DNS"
+
 sudo apt install -y bind9 bind9utils bind9-doc dnsutils
 
-read -p "Podaj mi adres IP twojego serwera (Adres IP karty LAN): " LAN_IP
 read -p "Podaj mi nazwę twojej domeny (na przykład damian.local): " DOMAIN
 read -p "Podaj mi nazwę domeny twojego serwera (na przykład serwer.damian.local): " SERVER_DOMAIN
 read -p "Podaj mi nazwę domeny klienta (na przykład klient1.damian.local, wymagane jest wpisanie na początku klient1): " CLIENT_DOMAIN
@@ -141,5 +215,8 @@ if [[ "$ARPAZONE" != *"OK"* ]]; then
 echo "Konfiguracja nie działa dobrze i się nie powiodła, wychodzenie ze skryptu"
 exit 1
 else
-echo "Wszystkie konfiguracje zadziałały! Cały serwer DNS zrobiony, zrób jeszcze komendę dig $DOMAIN i nslookup $DOMAIN żeby sprawdzić czy działa"
+echo "Wszystkie konfiguracje zadziałały! Cały serwer DNS zrobiony, zrób jeszcze komendę dig $DOMAIN , nslookup $DOMAIN , dig $SERVER_DOMAIN i nslookup $SERVER_DOMAIN żeby sprawdzić czy działa"
 fi
+
+echo "Wszystko zrobione! DHCP, NAT i routing, DNS też"
+##### Koniec DNS

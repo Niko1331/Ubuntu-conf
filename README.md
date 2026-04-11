@@ -23,6 +23,10 @@ sudo bash iptables.sh
 ```bash
 sudo bash dns.sh
 ```
+- ### Nowy plik, all.sh który robi wszystkie trzy role od razu, uruchom go używając
+```bash
+sudo bash all.sh
+```
 
 ### Plik iptables.sh wykryje nazwę karty WAN ale trzeba wpisać ręcznie nazwę karty LAN a potem użyje je w komendach iptables
 ### Plik dhcp.sh najpierw się spyta o:

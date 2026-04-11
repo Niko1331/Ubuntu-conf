@@ -4,10 +4,10 @@ set -e
 
 read -p "Podaj najpierw nazwę karty LAN żebym mógł wpisać jej nazwę do pliku /etc/default/isc-dhcp-server: " LAN_IF
 read -p "Podaj swój adres ip karty LAN: " LAN_IP
-read -p "Podaj swoją podsieć czyli adres ip karty LAN ale dopisz 0 na końcu adresu: " SUBNET
 read -p "Podaj swój zakres początkowy serwera DHCP: " RANGE_START
 read -p "Podaj swój zakres końcowy serwera DHCP: " RANGE_END
 read -p "Podaj adres serwera DNS: " DNS_IP
+SUBNET=$(echo $LAN_IP | awk -F'.' '{print $1"."$2"."$3".0"}')
 
 sudo bash -c "cat > /etc/default/isc-dhcp-server" << EOF
 INTERFACESv4="$LAN_IF"
