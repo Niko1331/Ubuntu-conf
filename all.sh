@@ -12,11 +12,10 @@ fi
 echo "Karta WAN = $WAN_IF"
 read -p "Podaj najpierw nazwę karty LAN żebym mógł wpisać jej nazwę do pliku /etc/default/isc-dhcp-server: " LAN_IF
 read -p "Podaj swój adres ip karty LAN: " LAN_IP
-read -p "Podaj swój zakres początkowy serwera DHCP: " RANGE_START
-read -p "Podaj swój zakres końcowy serwera DHCP: " RANGE_END
 read -p "Podaj adres serwera DNS: " DNS_IP
 SUBNET=$(echo $LAN_IP | awk -F'.' '{print $1"."$2"."$3".0"}')
-
+RANGE_START=$(echo $LAN_IP | awk -F'.' '{print $1"."$2"."$3".100"}')
+RANGE_END=$(echo $LAN_IP | awk -F'.' '{print $1"."$2"."$3".150"}')
 
 sudo bash -c "cat > /etc/default/isc-dhcp-server" << EOF
 INTERFACESv4="$LAN_IF"
